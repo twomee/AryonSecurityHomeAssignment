@@ -1,4 +1,4 @@
-FROM postgres:15.18-alpine
+FROM postgres:18.4-alpine
 
 RUN apk upgrade --no-cache
 
