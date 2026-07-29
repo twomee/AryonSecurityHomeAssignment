@@ -1,12 +1,12 @@
 import json
-import requests
-from typing import Dict, Any
 from pathlib import Path
+from typing import Any
 
+import requests
 
-host = 'localhost'
-port = '8080'
-endpoint = 'hierarchy'
+host = "localhost"
+port = "8080"
+endpoint = "hierarchy"
 
 
 class CloudHierarchyTest:
@@ -15,7 +15,7 @@ class CloudHierarchyTest:
         self.store_endpoint = f"{self.base_url}/{endpoint}"
         self.fetch_endpoint = f"{self.base_url}/{endpoint}"
 
-    def store_hierarchy(self, hierarchy: Dict[str, Any]) -> requests.Response:
+    def store_hierarchy(self, hierarchy: dict[str, Any]) -> requests.Response:
         """
         Store a cloud hierarchy object.
 
@@ -30,9 +30,9 @@ class CloudHierarchyTest:
             response.raise_for_status()
             return response
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to store hierarchy: {str(e)}")
+            raise Exception(f"Failed to store hierarchy: {e}") from e
 
-    def fetch_hierarchy(self, hierarchy_id: int) -> Dict[str, Any]:
+    def fetch_hierarchy(self, hierarchy_id: int) -> dict[str, Any]:
         """
         Fetch a cloud hierarchy by its root ID.
 
@@ -47,9 +47,9 @@ class CloudHierarchyTest:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to fetch hierarchy: {str(e)}")
+            raise Exception(f"Failed to fetch hierarchy: {e}") from e
 
-    def compare_hierarchies(self, original: Dict[str, Any], retrieved: Dict[str, Any]) -> bool:
+    def compare_hierarchies(self, original: dict[str, Any], retrieved: dict[str, Any]) -> bool:
         """
         Compare two hierarchy objects for equality.
 
@@ -69,8 +69,8 @@ def run_tests() -> None:
     """
     tester = CloudHierarchyTest()
     test_files = sorted(
-        Path('tests/objects').absolute().glob("*.json"),
-        key=lambda x: int(x.stem)  # stem gets filename without extension
+        Path("tests/objects").absolute().glob("*.json"),
+        key=lambda x: int(x.stem),  # stem gets filename without extension
     )
     total_tests = 0
     passed_tests = 0
@@ -81,7 +81,7 @@ def run_tests() -> None:
 
         try:
             # Load test data
-            with open(test_file, 'r') as f:
+            with open(test_file) as f:
                 original_hierarchy = json.load(f)
 
             # Store hierarchy
@@ -89,7 +89,7 @@ def run_tests() -> None:
             print(f"Store response status: {store_response.status_code}")
 
             # Fetch hierarchy
-            root_id = original_hierarchy['id']
+            root_id = original_hierarchy["id"]
             retrieved_hierarchy = tester.fetch_hierarchy(root_id)
 
             # Compare hierarchies
@@ -103,6 +103,10 @@ def run_tests() -> None:
 
         except Exception as e:
             print(f"❌ Test failed with error: {str(e)}")
+
+    print(f"\nPassed {passed_tests}/{total_tests} hierarchy fixtures")
+    if passed_tests != total_tests:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

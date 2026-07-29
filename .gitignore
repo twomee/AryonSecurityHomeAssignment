@@ -70,6 +70,7 @@ release/
 # Dependency directories
 Godeps/
 .vendor-new/
+.worktrees/
 
 # Output of go coverage tool
 *.out

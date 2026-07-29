@@ -1,17 +1,13 @@
-FROM postgres:15
+FROM postgres:15.18-alpine
 
-# Set environment variables
-ENV POSTGRES_USER=aryon
-ENV POSTGRES_PASSWORD=aryon
-ENV POSTGRES_DB=aryondb
+RUN apk upgrade --no-cache
 
-RUN mkdir -p /docker-entrypoint-initdb.d
-
-# Copy initialization scripts
 COPY ./init.sql /docker-entrypoint-initdb.d/
 
-# Expose the PostgreSQL port
+RUN rm /usr/local/bin/gosu
+
+USER postgres
+
 EXPOSE 5432
 
-# Set the default command
 CMD ["postgres"]

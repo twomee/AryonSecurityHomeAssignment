@@ -10,4 +10,3 @@ VALUES
     ('microsoft'),
     ('amazon'),
     ('google');
-
