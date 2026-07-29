@@ -112,32 +112,25 @@ jobs:
       - name: Build images
         run: docker compose build
 
-      - name: Scan Go image
+      - name: Scan container images
         run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            aquasec/trivy@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
-            image --exit-code 1 --severity CRITICAL,HIGH --ignore-unfixed \
-            --scanners vuln --skip-version-check \
-            aryonsecuritycloudhomeassignment-go-server:latest
+          # Compose derives image names from its project name, which changes
+          # between local folders, worktrees, and GitHub Actions checkouts.
+          images="$(docker compose config --images)"
+          if [ -z "$images" ]; then
+            echo "Docker Compose did not resolve any images to scan." >&2
+            exit 1
+          fi
 
-      - name: Scan PostgreSQL image
-        run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            aquasec/trivy@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
-            image --exit-code 1 --severity CRITICAL,HIGH --ignore-unfixed \
-            --scanners vuln --skip-version-check \
-            aryonsecuritycloudhomeassignment-postgres:latest
-
-      - name: Scan migration image
-        run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            aquasec/trivy@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
-            image --exit-code 1 --severity CRITICAL,HIGH --ignore-unfixed \
-            --scanners vuln --skip-version-check \
-            aryonsecuritycloudhomeassignment-migrate:latest
+          while IFS= read -r image; do
+            echo "Scanning $image"
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
+              image --exit-code 1 --severity CRITICAL,HIGH --ignore-unfixed \
+              --scanners vuln --skip-version-check \
+              "$image"
+          done <<< "$images"
 
   secrets:
     runs-on: ubuntu-latest
