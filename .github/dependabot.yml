@@ -1,0 +1,41 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /go-server
+    schedule:
+      interval: weekly
+    groups:
+      go-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: pip
+    directory: /tests
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /go-server
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /postgres
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /migrator
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

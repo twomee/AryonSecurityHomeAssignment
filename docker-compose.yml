@@ -1,0 +1,63 @@
+services:
+  postgres:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: aryon
+      POSTGRES_PASSWORD: aryon
+      POSTGRES_DB: aryondb
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U aryon -d aryondb"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - aryon-network
+
+  migrate:
+    build:
+      context: ./migrator
+      dockerfile: Dockerfile
+    command:
+      - "-path=/migrations"
+      - "-database=postgresql://aryon:aryon@postgres:5432/aryondb?sslmode=disable"
+      - "up"
+    volumes:
+      - ./postgres/migrations:/migrations:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - aryon-network
+
+  go-server:
+    build:
+      context: ./go-server
+      dockerfile: Dockerfile
+    container_name: go-api
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgresql://aryon:aryon@postgres:5432/aryondb?sslmode=disable
+      GIN_MODE: release
+      PORT: "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - aryon-network
+
+networks:
+  aryon-network:
+    driver: bridge
+
+volumes:
+  postgres-data:

@@ -1,0 +1,39 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.0
+    hooks:
+      - id: ruff-check
+        args: [--fix, --config, tests/pyproject.toml]
+        files: ^tests/.*\.py$
+      - id: ruff-format
+        args: [--config, tests/pyproject.toml]
+        files: ^tests/.*\.py$
+
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        entry: sh scripts/precommit.sh gofmt
+        language: system
+        pass_filenames: false
+        files: ^go-server/.*\.go$
+
+      - id: go-test
+        name: go unit tests
+        entry: sh scripts/precommit.sh test
+        language: system
+        pass_filenames: false
+        files: ^go-server/.*\.go$
+
+      - id: gitleaks
+        name: staged secret scan
+        entry: sh scripts/precommit.sh gitleaks
+        language: system
+        pass_filenames: false
